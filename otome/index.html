@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>IA en NPCs - Novela Visual</title>
+    <style>
+        /* Tipografía Pixel Art (Opcional: usamos monospace para simularlo) */
+        @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+        /* Estilos base y fondo */
+        body { 
+            margin: 0; overflow: hidden; 
+            font-family: 'VT323', monospace; /* Cambiado a una fuente estilo pixel */
+            background-color: #ffb6c1; /* Color base rosa como en tu mockup */
+            user-select: none;
+        }
+        
+        #game-container { 
+            position: relative; width: 100vw; height: 100vh; 
+            display: flex; flex-direction: column; justify-content: flex-end; align-items: center; 
+            background-size: cover; background-position: center; transition: background-image 0.5s ease; 
+        }
+
+        /* ================= PANTALLA DE SELECCIÓN ================= */
+        #pantalla-seleccion {
+            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+            display: flex; z-index: 100; background-image: url('assets/fondo_rosa_base.jpg'); 
+            background-size: cover;
+        }
+
+        .mitad-pantalla {
+            width: 50%; height: 100%; display: flex; align-items: center; justify-content: center;
+            transition: background-color 0.4s ease; position: relative;
+        }
+
+        /* Contenedor de la carta del personaje (imagen + borde) */
+       .carta-pj {
+            border: 4px solid #555; border-radius: 15px; background: #fff;
+            padding: 10px; z-index: 2; 
+            transition: opacity 0.4s ease, transform 0.2s; 
+            cursor: pointer;
+        }
+        .carta-pj img { height: 350px; image-rendering: pixelated; } 
+
+        /* ================= EFECTOS DE HOVER Y APARICIÓN DE TEXTO ================= */
+
+/* Ocultar la carta del personaje opuesto al hacer hover */
+#pantalla-seleccion:has(#mitad-yarrow:hover) #mitad-lantana .carta-pj {
+    opacity: 0;
+    pointer-events: none;
+}
+#pantalla-seleccion:has(#mitad-lantana:hover) #mitad-yarrow .carta-pj {
+    opacity: 0;
+    pointer-events: none;
+}
+
+#mitad-yarrow:hover, #mitad-lantana:hover { z-index: 10; }
+
+/* El bloque de color y texto */
+.info-hover {
+    position: absolute; 
+    top: 0;
+    height: 100%;  
+    width: 110%; 
+    display: flex;
+    flex-direction: column;
+    justify-content: center; 
+    box-sizing: border-box;
+    z-index: 1; 
+    opacity: 0; 
+    transition: opacity 0.4s ease;
+    font-size: 1.6rem; 
+    line-height: 1.3;
+    color: #000; 
+    pointer-events: none; 
+}
+
+/* Yarrow derecha */
+#mitad-yarrow .info-hover { 
+    left: 50%; 
+    background-color: #c3d2f9; 
+    padding-left: 220px; 
+    padding-right: 10vw; 
+}
+#mitad-yarrow:hover .info-hover { 
+    opacity: 1; 
+}
+
+/*Lantana izquierda*/
+#mitad-lantana .info-hover { 
+    right: 50%; 
+    background-color: #fbb49a; 
+    padding-right: 220px; 
+    padding-left: 10vw; 
+}
+#mitad-lantana:hover .info-hover { 
+    opacity: 1; 
+}
+
+        #cartel-elige {
+            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.5); border: 4px solid #bbaacc; border-radius: 15px;
+            padding: 15px 40px; font-size: 2rem; color: #fff; z-index: 101; pointer-events: none;
+            text-shadow: 2px 2px 0px #000;
+        }
+
+        /* ui otome (el lore) */
+        .character-sprite { 
+            position: absolute; bottom: 0; max-height: 85vh; z-index: 10; transition: opacity 0.3s ease; 
+            image-rendering: pixelated;
+        }
+
+        #ui-layer { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 20; 
+            pointer-events: none; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; padding-bottom: 2rem; 
+        }
+        
+        #dialogue-box { 
+            width: 80%; max-width: 900px; min-height: 150px; background: rgba(30, 20, 40, 0.95); 
+            border: 4px solid #4a148c; border-radius: 15px; padding: 30px 25px 20px 25px; 
+            color: white; position: relative; pointer-events: auto; cursor: pointer; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5); display: none; 
+            flex-direction: column; justify-content: center;
+        }
+
+        #speaker-name { 
+            position: absolute; top: -25px; left: 30px; background: #4a148c; color: white; 
+            padding: 5px 20px; border-radius: 10px; font-weight: bold; font-size: 1.5rem; border: 2px solid #fff;
+        }
+
+        #dialogue-text { font-size: 1.6rem; line-height: 1.4; margin: 0; }
+
+        #choices-container { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+        
+        .choice-btn { 
+            background: rgba(74, 20, 140, 0.4); border: 2px solid #7c43bd; padding: 12px 20px; 
+            border-radius: 8px; color: white; font-size: 1.4rem; cursor: pointer; transition: all 0.2s; 
+            text-align: left; font-family: inherit; width: 100%; box-sizing: border-box;
+        }
+        .choice-btn:hover { background: rgba(124, 67, 189, 0.9); padding-left: 25px; }
+        
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+   <!-- elegir pj -->
+    <div id="pantalla-seleccion">
+        <div id="mitad-yarrow" class="mitad-pantalla">
+            <div class="carta-pj" onclick="iniciarDialogo('npc_saludo')">
+                <img src="assets/yarrow.png" alt="Yarrow">
+            </div>
+            <div class="info-hover">
+                <p><strong>Hola. Soy Yarrow, un NPC.</strong> </p> 
+                <p>Seguramente alguna vez hablaste con un personaje como yo sin preguntarte qué hay detrás de nuestras palabras.<br><br>Yo puedo contarte qué es realmente un NPC, como funciono y qué ocurre cuando interactuas conmigo. También te puedo ayudar a descubrir qué cambia cuando un personaje como yo incorpora inteligencia artificial.</p>
+            </div>
+        </div>
+    
+        <div id="mitad-lantana" class="mitad-pantalla">
+            <div class="info-hover">
+                <p><strong>Hola yo soy Lantana.</strong><br><br>Conmigo puedes hablar sobre la inteligencia artificial en los NPC. Es una tecnología que esta cambiando muchas cosas y que genera bastante debate. Hay quienes ven nuevas posibilidades en la creacion de videojuegos, mientras que otros se preguntan hasta donde vale la pena utilizarlas.</p></div>
+            <div class="carta-pj" onclick="iniciarDialogo('inv_saludo')">
+                <img src="assets/lantana.png" alt="Lantana">
+            </div></div>
+        <div id="cartel-elige">Elige un Personaje</div>
+    </div>
+<!-- contenedor juego -->
+    <div id="game-container" style="background-image: url('assets/fondo_aula.jpg');" class="hidden">
+        <img id="character-sprite" src="" alt="Personaje" class="character-sprite hidden">
+        
+        <div id="ui-layer">
+            <div id="dialogue-box" onclick="avanzarDialogo()">
+                <div id="speaker-name" class="hidden">Nombre</div>
+                <div id="dialogue-text" class="hidden">Texto...</div>
+                <div id="choices-container" class="hidden"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+                    //"npc_menu_preguntas": el id del dialogo teens que poner esto en el next para que salga el siguiente
+                   // sprite: "assets/yarrow.png", que imagen apareceen es dialogo 
+                  //choices: [ abre opciones
+                 // { text: "¿Qué es un NPC?", target: "user_pregunta_1" }, texto es texto...
+                // { text: "Volver al menú de selección", target: "reiniciar_juego" } target es como next pero pa las opciones
+               //] cierra opciones
+
+           //"npc_saludo": el id del dialogo teens que poner esto en el next para que salga el siguiente
+          //speaker: "Yarrow", nombre quien habla
+         // text: "¡Hola! soy NPC", los que dice el recuadro
+        //sprite: "assets/yarrow.png", wachin que habla
+       //next: "npc_menu_preguntas" cuales es el siguiente dialogo 
+            
+        const historia = {
+            // dialogos jack sparrow
+            "npc_saludo": {
+                speaker: "Yarrow",
+                text: "¡Hola! soy Yarrow, un NPC, ¿Querés saber cómo funciono? Pregúntame lo que quieras.",
+                sprite: "assets/yarrow.png",
+                next: "npc_menu_preguntas"
+            },
+            "npc_menu_preguntas": {
+                sprite: "assets/yarrow.png",
+                choices: [
+                    { text: "¿Qué es un NPC?", target: "user_pregunta_1" },
+                    { text: "¿Cómo funcionan los NPC?", target: "user_pregunta_2" },
+                    { text: "Volver al menú de selección", target: "reiniciar_juego" }
+                ]
+            },
+            "user_pregunta_1": {
+                speaker: "Usuario",
+                text: "¿Qué es un NPC?",
+                next: "npc_respuesta_1.1"
+            },
+            "npc_respuesta_1.1": {
+                speaker: "Yarrow",
+                text: "NPC (Non-Player Characters) es un personaje no jugable. No controlo la historia directamente como vos, pero puedo cumplir un montón de funciones dentro del juego.",
+                next: "user_pregunta_cuales"
+            },
+             "user_pregunta_cuales": {
+                speaker: "Usuario",
+                text: "¿como cúales?",
+                next: "npc_respuesta_1.2"
+            },
+             "npc_respuesta_1.2": {
+                speaker: "Yarrow",
+                text: " Puedo darte información, participar en una misión, enfrentarme a vos como enemigo o incluso formar parte de la narrativa.",
+                next: "npc_respuesta_1.3"
+            },
+             "npc_respuesta_1.3": {
+                speaker: "Yarrow",
+                text: " En pocas palabras: quizás no juegues por vos, pero sin personajes como yo muchos mundos se sentirían bastante vacíos.",
+                next: "npc_menu_preguntas"
+            },
+            "user_pregunta_2": {
+                speaker: "Usuario",
+                text: "¿Cómo funcionan los NPC?",
+                next: "npc_respuesta_2"
+            },
+            "npc_respuesta_2": {
+                speaker: "Yarrow",
+                text: "Depende de cómo esté diseñado ¿queres saber mi diseño “clásico” o el con IA implementada?",
+                next: "npc_menu_preguntas2"
+            },
+           "npc_menu_preguntas2": {
+                sprite: "assets/yarrow.png",
+                choices: [
+                    { text: " ¿diseño clásico?", target: "npc_respuesta_clasico" },
+                    { text: " ¿diseño con IA implementada?", target: "npc_respuesta_ia" },
+                ]
+            },
+            "npc_respuesta_clasico": {
+                speaker: "Yarrow",
+                text: "Tradicionalmente, las interacciones de los NPC se construyen mediante diálogos y comportamientos definidos previamente por los desarrolladores. A esto lo llamamos “árbol de decisiones”...",
+                next: "npc_respuesta_clasico1.1"
+            },
+            "npc_respuesta_clasico1.1": {
+                speaker: "Yarrow",
+                text: "Esto significa que el sistema establece que puede decir o hacer un personaje ante determinadas situaciones, pero en este modelo, la interacción del jugador se encuentra limitada por las opciones y reglas que fueron diseñadas durante el desarrollo del videojuego.",
+                next: "npc_respuesta_clasico1.2"
+            },
+             "npc_respuesta_clasico1.2": {
+                speaker: "Yarrow",
+                text: " ¿quieres conocer la nueva función de los NPC con modelos de lenguaje con IA?.",
+                next: "npc_menu_preguntas_ia_2"
+            },
+             "npc_menu_preguntas_ia_2": {
+                sprite: "assets/yarrow.png",
+                choices: [
+                    { text: " Si, quiero saber más", target: "npc_respuesta_ia" },
+                    { text: " No, gracias", target: "npc_menu_preguntas" },
+                ]
+            },
+            "npc_respuesta_ia": {
+                speaker: "Yarrow",
+                text: "En la actualidad existen modelos de lenguaje implementados con IA, conocidos como LLM (Large Language Models), introduce una alternativa. En lugar de limitar la interacción a respuestas completamente predefinidas, estos modelos pueden generar respuestas a partir de las entradas del jugador y del contexto proporcionado por el videojuego.",
+                next: "user_pregunta_ia_2"
+            },
+            "user_pregunta_ia_2": {
+                speaker: "Usuario",
+                text: "¿Entonces podés inventar lo que decís?",
+                next: "npc_respuesta_ia_1.2"
+            },
+            "npc_respuesta_ia_1.2": {
+                speaker: "Yarrow",
+                text: "Puedo generar determinadas respuestas de manera dinámica, en lugar de elegir únicamente entre frases escritas de antemano. Aunque eso no significa que tenga inteligencia humana. Significa que la forma en la que genero mis respuestas es diferente.",
+                next: "user_pregunta_ia_3"
+            },
+            "user_pregunta_ia_3": {
+                speaker: "Usuario",
+                text: "¿Qué cambia en una conversación?",
+                next: "npc_respuesta_ia_1.4"
+            },
+            "npc_respuesta_ia_1.4": {
+                speaker: "Yarrow",
+                text: " Con un NPC tradicional, las respuestas disponibles fueron escritas previamente por los desarrolladores. Vos podés elegir entre distintas opciones, pero todas forman parte de lo que el sistema ya conoce.",
+                next: "user_pregunta_ia_4"
+            },
+            "user_pregunta_ia_4": {
+                speaker: "Usuario",
+                text: "¿Y con un NPC que utiliza IA?",
+                next: "npc_respuesta_ia_1.6"
+            },
+            "npc_respuesta_ia_1.6": {
+                speaker: "Yarrow",
+                text: " La interacción puede ser más flexible. En lugar de elegir solamente una frase de una lista, podés formular una pregunta o instrucción y yo puedo generar una respuesta a partir de lo que me dijiste y del contexto que recibí.",
+                next: "user_pregunta_ia_5"
+            },
+            "user_pregunta_ia_5": {
+                speaker: "Usuario",
+                text: " Entonces, ¿ya no necesito elegir entre opciones?",
+                next: "npc_respuesta_ia_1.8"
+            },
+            "npc_respuesta_ia_1.8": {
+                speaker: "Yarrow",
+                text: "No necesariamente. La interacción puede dejar de estar limitada a respuestas completamente predefinidas. Pero generar una respuesta en tiempo real no significa que siempre vaya a ser correcta o coherente.",
+                next: "user_pregunta_ia_6"
+            },
+            "user_pregunta_ia_6": {
+                speaker: "Usuario",
+                text: "  ¿Cómo sabes qué responder? ",
+                next: "npc_respuesta_ia_1.10"
+            },
+            "npc_respuesta_ia_1.10": {
+                speaker: "Yarrow",
+                text: " No lo sé todo por el simple hecho de utilizar IA. Para responder de manera coherente necesito recibir información sobre el contexto en el que me encuentro.",
+                next: "npc_respuesta_ia_1.11"
+            },
+            "user_pregunta_ia_6": {
+                speaker: "Usuario",
+                text: "¿Qué tipo de información?",
+                next: "npc_respuesta_ia_1.12"
+            },
+            "npc_respuesta_ia_1.12": {
+                speaker: "Yarrow",
+                text: "Por ejemplo: quién soy, cuál es mi personalidad, mi historia, mis objetivos y qué está ocurriendo en ese momento.",
+                next: "npc_respuesta_ia_1.13"
+            },
+            "npc_respuesta_ia_1.13": {
+                speaker: "Yarrow",
+                text: "También puedo necesitar información sobre el mundo del juego, nuestras interacciones anteriores y las instrucciones sobre lo que puedo o no puedo responder.",
+                next: "user_pregunta_ia_7"
+            },
+           "user_pregunta_ia_7": {
+                speaker: "Usuario",
+                text: "¿Y si no tenés suficiente información?",
+                next: "npc_respuesta_ia_1.15"
+            },
+            "npc_respuesta_ia_1.15": {
+                speaker: "Yarrow",
+                text: "Puedo tener dificultades para comprender correctamente el estado del juego y generar una respuesta coherente.",
+                next: "npc_respuesta_ia_1.16"
+            },
+            "npc_respuesta_ia_1.16": {
+                speaker: "Yarrow",
+                text: "Hablar no es suficiente. También necesito saber quién soy, dónde estoy y qué está pasando.",
+                next: "npc_respuesta_ia_1.17"
+            },
+            "npc_respuesta_ia_1.17": {
+                speaker: "Yarrow",
+                text: "Si queres conocer mas informacion a cerca de la opinion del publico en la ia puedo presentarte a mi compañera Lantana. Ella puede contarte sobre eso. ¿te interesa saberlo?",
+                next: "npc_menu_preguntas_desviante"
+            },
+             "npc_menu_preguntas_desviante": {
+                sprite: "assets/yarrow.png",
+                choices: [
+                    { text: " Si, presentame a Lantana", target: "inv_saludo" },
+                    { text: " No, gracias", target: "npc_menu_preguntas" },
+                ]
+            },
+
+            // dialogos lalatina
+            "inv_saludo": {
+                speaker: "Lantana",
+                text: "¡Hola! soy Lantana, un NPC, ¿Querés saber sobre los efectos de la IA en los NPCs? Pregúntame lo que quieras.",
+                sprite: "assets/lantana.png",
+                next: "inv_menu_preguntas"
+            },
+            "inv_menu_preguntas": {
+                sprite: "assets/lantana.png",
+                choices: [
+                    { text: "¿La IA realmente mejora la experiencia con los NPC?", target: "user_pregunta_3" },
+                    { text: "¿Como es el impacto de la IA en la industria de los juegos?", target: "user_pregunta_4" },
+                    { text: "Volver al menú de selección", target: "reiniciar_juego" }
+                ]
+            },
+            "user_pregunta_3": {
+                speaker: "Usuario",
+                text: "¿La IA realmente mejora la experiencia con los NPC?",
+                next: "inv_respuesta_3"
+            },
+            "inv_respuesta_3": {
+                speaker: "Lantana",
+                text: "Las investigaciones recientes han comenzado a comparar NPCs tradicionales y NPCs generativos mediante experimentos con jugadores.",
+                next: "inv_respuesta_3.1"
+            },
+            "inv_respuesta_3.1": {
+                speaker: "Lantana",
+                text: "Los resultados muestran beneficios en algunas dimensiones de la experiencia, pero también presentan limitaciones relacionadas con la... ",
+                next: "inv_respuesta_3.2"
+            },
+            "inv_respuesta_3.2": {
+                speaker: "Lantana",
+                text: "inmersión, los errores, la coherencia y el tiempo necesario para generar una respuesta. ",
+                next: "inv_menu_preguntas"
+            },
+            
+            "user_pregunta_4": {
+                speaker: "Usuario",
+                text: "¿Como es el impacto de la IA en la industria de los juegos?",
+                next: "inv_respuesta_4"
+            },
+            "inv_respuesta_4": {
+                speaker: "Lantana",
+                text: "La inteligencia artificial generativa ya forma parte de los procesos utilizados por una parte de la industria de videojuegos, aunque su aplicación...",
+                next: "inv_respuesta_4.1"
+            },
+            "inv_respuesta_4.1": {
+                speaker: "Lantana",
+                text: " no se limita a los NPCs. Más de 2.300 profesionales de la industria, encontró que el 36% de los encuestados utiliza herramientas de IA generativa como parte de su trabajo.",
+                next: "inv_respuesta_4.2"
+            },
+            
+            "inv_respuesta_4.2": {
+                speaker: "Lantana",
+                text: " El 52% de los profesionales encuestados considera que la IA generativa está teniendo un impacto negativo en la industria.",
+                next: "inv_respuesta_4.4"
+            },
+            "inv_respuesta_4.4": {
+                speaker: "Lantana",
+                text: "el porcentaje fue del 30%.",
+                next: "inv_respuesta_4.5"
+            },
+            "inv_respuesta_4.5": {
+                speaker: "Lantana",
+                text: "texto de ejemplo",
+                next: "inv_menu_preguntas"
+            }
+            
+        };
+
+        let nodoActual = ""; 
+        const uiPantallaSeleccion = document.getElementById("pantalla-seleccion");
+        const uiGameContainer = document.getElementById("game-container");
+        const uiCaja = document.getElementById("dialogue-box");
+        const uiTexto = document.getElementById("dialogue-text");
+        const uiNombre = document.getElementById("speaker-name");
+        const uiOpciones = document.getElementById("choices-container");
+        const uiPersonaje = document.getElementById("character-sprite");
+
+        function iniciarDialogo(idNodoInicial) {
+            uiPantallaSeleccion.classList.add("hidden");
+            uiGameContainer.classList.remove("hidden");
+            uiCaja.style.display = "flex";
+
+            mostrarNodo(idNodoInicial);
+        }
+
+        function mostrarNodo(id) {
+            if (id === "reiniciar_juego") {
+                uiPantallaSeleccion.classList.remove("hidden");
+                uiGameContainer.classList.add("hidden");
+                return;
+            }
+
+            const nodo = historia[id];
+            if(!nodo) return;
+            
+            nodoActual = id;
+            uiOpciones.innerHTML = ""; 
+
+            if(nodo.sprite) {
+                uiPersonaje.src = nodo.sprite;
+                uiPersonaje.classList.remove("hidden");
+            }
+
+            if(nodo.choices) {
+                uiTexto.classList.add("hidden");
+                uiNombre.classList.add("hidden");
+                uiOpciones.classList.remove("hidden");
+                
+                nodo.choices.forEach(opcion => {
+                    const btn = document.createElement("button");
+                    btn.className = "choice-btn";
+                    btn.innerText = opcion.text;
+                    btn.onclick = (e) => {
+                        e.stopPropagation(); 
+                        mostrarNodo(opcion.target);
+                    };
+                    uiOpciones.appendChild(btn);
+                });
+            } else {
+                uiOpciones.classList.add("hidden");
+                uiTexto.classList.remove("hidden");
+                uiNombre.classList.remove("hidden");
+                
+                uiNombre.innerText = nodo.speaker;
+                uiTexto.innerText = nodo.text;
+            }
+        }
+
+        function avanzarDialogo() {
+            const nodo = historia[nodoActual];
+            if(nodo.next && !nodo.choices) {
+                mostrarNodo(nodo.next);
+            }
+        }
+    </script>
+</body>
+</html>
