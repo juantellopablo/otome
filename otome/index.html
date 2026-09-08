@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <title>IA en NPCs - Novela Visual</title>
     <style>
-        /* Tipografía Pixel Art (Opcional: usamos monospace para simularlo) */
+        
         @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
-        /* Estilos base y fondo */
+        
         body { 
             margin: 0; overflow: hidden; 
             font-family: 'VT323', monospace; /* Cambiado a una fuente estilo pixel */
@@ -21,7 +21,7 @@
             background-size: cover; background-position: center; transition: background-image 0.5s ease; 
         }
 
-        /* ================= PANTALLA DE SELECCIÓN ================= */
+        /*divicion pantalla seleccion*/
         #pantalla-seleccion {
             position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
             display: flex; z-index: 100; background-image: url('assets/fondo_rosa_base.jpg'); 
@@ -33,7 +33,7 @@
             transition: background-color 0.4s ease; position: relative;
         }
 
-        /* Contenedor de la carta del personaje (imagen + borde) */
+        /* Contenedor pj*/
        .carta-pj {
             border: 4px solid #555; border-radius: 15px; background: #fff;
             padding: 10px; z-index: 2; 
@@ -42,9 +42,9 @@
         }
         .carta-pj img { height: 350px; image-rendering: pixelated; } 
 
-        /* ================= EFECTOS DE HOVER Y APARICIÓN DE TEXTO ================= */
+        /*efectos imagen texto */
 
-/* Ocultar la carta del personaje opuesto al hacer hover */
+
 #pantalla-seleccion:has(#mitad-yarrow:hover) #mitad-lantana .carta-pj {
     opacity: 0;
     pointer-events: none;
@@ -56,7 +56,7 @@
 
 #mitad-yarrow:hover, #mitad-lantana:hover { z-index: 10; }
 
-/* El bloque de color y texto */
+/*bloquecolor texto */
 .info-hover {
     position: absolute; 
     top: 0;
