@@ -667,36 +667,37 @@
                 position: "center",
                 next: "inv_menu_preguntas"
             },
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
         };
 
+//pree carga de mrds//
+        function precargarImagenes() {
+            const imagenesParaCargar = new Set(); 
 
+            imagenesParaCargar.add('assets/fondo_rosa_base.jpg');
+            imagenesParaCargar.add('assets/fondo_aula.jpg');
+            imagenesParaCargar.add('assets/yarrow.png');
+            imagenesParaCargar.add('assets/lantana.png');
+
+            for (const key in historia) {
+                const nodo = historia[key];
+                if (nodo.fondo) imagenesParaCargar.add(nodo.fondo);
+                if (nodo.spriteIdle) imagenesParaCargar.add(nodo.spriteIdle);
+                if (nodo.spriteHablando) imagenesParaCargar.add(nodo.spriteHablando);
+                if (nodo.sprite) imagenesParaCargar.add(nodo.sprite);
+                if (nodo.extraImage) imagenesParaCargar.add(nodo.extraImage);
+                if (nodo.extraIdle) imagenesParaCargar.add(nodo.extraIdle);
+                if (nodo.extraHablando) imagenesParaCargar.add(nodo.extraHablando);
+            }
+
+            imagenesParaCargar.forEach(ruta => {
+                const img = new Image();
+                img.src = ruta;
+            });
+            
+            console.log("todo cragado");
+        }
+
+        window.onload = precargarImagenes;
         let nodoActual = ""; 
         const uiPantallaSeleccion = document.getElementById("pantalla-seleccion");
         const uiGameContainer = document.getElementById("game-container");
