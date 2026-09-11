@@ -7,33 +7,26 @@
         
         @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
-        
         body { 
             margin: 0; overflow: hidden; 
             font-family: 'VT323', monospace; 
             background-color: #ffb6c1; 
             user-select: none;
         }
-        
         #game-container { 
             position: relative; width: 100vw; height: 100vh; 
             display: flex; flex-direction: column; justify-content: flex-end; align-items: center; 
             background-size: cover; background-position: center; transition: background-image 0.5s ease; 
         }
-
-        
         #pantalla-seleccion {
             position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
             display: flex; z-index: 100; background-image: url('assets/fondo_rosa_base.jpg'); 
             background-size: cover;
         }
-
         .mitad-pantalla {
             width: 50%; height: 100%; display: flex; align-items: center; justify-content: center;
             transition: background-color 0.4s ease; position: relative;
         }
-
-        
        .carta-pj {
             border: 4px solid #555; border-radius: 15px; background: transparent;
             padding: 0; z-index: 2; 
@@ -131,6 +124,22 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.5); display: none; 
             flex-direction: column; justify-content: center;
         }
+        #boton-dialogo {
+            position: absolute;
+            right: 15px;
+            bottom: 10px;
+            width: 70px;
+            height: 70px;
+            object-fit: contain;
+            cursor: pointer;
+            z-index: 20;
+            image-rendering: pixelated;
+            transition: transform 0.15s ease;
+        }
+
+#boton-dialogo:hover {
+    transform: scale(1.1);
+}
 
         #speaker-name { 
             position: absolute; top: -25px; left: 30px;  color: white; 
@@ -165,10 +174,104 @@
             cursor: pointer;
             transition: transform 0.2s ease;
         }
+        #boton-menu {
+         position: absolute;
+         top: 20px;
+         right: 30px;
+         width: 66px;
+         height: 66px;
+         object-fit: contain;
+         z-index: 100;
+         cursor: pointer;
+         image-rendering: pixelated;
+         transition: transform 0.2s ease;
+        }
 
         #boton-atras:hover {
             transform: scale(1.1); 
         }
+
+        #menu-hamburguesa {
+    position: absolute;
+    top: 90px;
+    right: 30px;
+    width: 260px;
+    padding: 15px;
+
+    background: rgba(255, 255, 255, 0.95);
+    border: 4px solid #7c43bd;
+    border-radius: 12px;
+
+    z-index: 200;
+
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#menu-hamburguesa button {
+    font-family: 'VT323', monospace;
+    font-size: 1.6rem;
+
+    padding: 12px;
+
+    border: 3px solid #7c43bd;
+    border-radius: 8px;
+
+    background: rgba(156, 181, 250, 0.8);
+    color: #111;
+
+    cursor: pointer;
+}
+#historial-chat {
+    position: absolute;
+    top: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 88%;
+    max-width: 900px;
+    height: 300px;
+    background: rgba(230, 230, 235, 0.94);
+    border: 4px solid #bbaacc;
+    border-radius: 10px;
+    z-index: 150;
+    padding: 35px 25px 20px 25px;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+.historial-oculto {
+    display: none !important;
+}
+#historial-titulo {
+    text-align: center;
+    font-size: 2rem;
+    color: #a875c5;
+    margin-bottom: 10px;
+    text-shadow: 1px 1px 0 #fff;
+}
+#historial-contenido {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.historial-pregunta {
+    text-align: center;
+    font-size: 1.5rem;
+    color: #222;
+    font-weight: bold;
+}
+.historial-respuesta {
+    text-align: center;
+    font-size: 1.4rem;
+    color: #111;
+    margin-bottom: 8px;
+}
+#menu-hamburguesa button:hover {
+    background: rgba(156, 181, 250, 1);
+}
+.menu-cerrado {
+    display: none !important;
+}
         /* Tema Yarrow (Celeste) */
         .tema-yarrow { background: #9cb5fa !important; border-color: #5a7bd5 !important; }
         .tema-yarrow #speaker-name {  text-shadow: 
@@ -222,13 +325,29 @@
 <!-- contenedor juego -->
     <div id="game-container" style="background-image: url('assets/fondo_aula.jpg');" class="hidden">
         <div id="boton-atras" onclick="mostrarNodo('reiniciar_juego')">ATRAS</div>
+        <img id="boton-menu" src="assets/menu.png" alt="Menú" onclick="abrirMenu()">
+        <div id="historial-chat" class="historial-oculto">
+            <div id="historial-titulo">
+                HISTORIAL DE CHAT
+            </div>
+            <div id="historial-contenido"></div>
+        </div>
+        
+        <div id="menu-hamburguesa" class="menu-cerrado">
+             <button onclick="abrirHistorial()">Historial de chat</button>
+              <button onclick="volverAlInicio()">Volver a inicio</button>
+               <button onclick="abrirRedes()">Redes sociales</button>
+               <button onclick="abrirFuentes()">Fuentes</button>
+
+</div>
         <img id="character-sprite" src="" alt="Personaje" class="character-sprite sprite-oculto">
         <img id="extra-sprite" src="" alt="Imagen Extra" class="character-sprite sprite-oculto">
         <div id="ui-layer">
-            <div id="dialogue-box" onclick="avanzarDialogo()">
+            <div id="dialogue-box">
                 <div id="speaker-name" class="hidden">Nombre</div>
                 <div id="dialogue-text" class="hidden">Texto...</div>
                 <div id="choices-container" class="hidden"></div>
+                <img id="boton-dialogo" src="assets/flecha.png" alt="Continuar" onclick="avanzarDialogo()">
             </div>
         </div>
     </div>
@@ -253,7 +372,7 @@
     //next: "npc_menu_preguntas" cuales es el siguiente dialogo 
             
         const historia = {
-            // dialogos jack sparrow
+            // dialogos yarrow
             "npc_saludo": {
                 speaker: "Yarrow",
                 text: "¡Hola! soy Yarrow, un NPC, ¿Querés saber cómo funciono? Pregúntame lo que quieras.",
@@ -516,9 +635,15 @@
                 spriteHablando: "assets/Lantana_hablando.webp",
                 position: "left",
                 extraImage: "assets/extra5.png",
+                next: "inv_respuesta_3.1"
+            },
+            "inv_respuesta_3.1": {
+                speaker: "Lantana",
+                text: "Estos resultados indican que, dentro de las condiciones de este experimento, los participantes reportaron una mayor satisfacción al interactuar con NPCs basados en LLM.",
+                spriteIdle: "assets/Lantana_idle.webp",
+                spriteHablando: "assets/Lantana_hablando.webp",
                 next: "inv_respuesta_3.2"
             },
-            
             "inv_respuesta_3.2": {
                 speaker: "Lantana",
                 text: "Sin embargo, los resultados no permiten afirmar que todos los videojuegos con NPCs generativos vayan a producir automáticamente una experiencia más satisfactoria. El estudio se realizó bajo condiciones experimentales específicas, por lo que sus resultados deben interpretarse dentro de ese contexto. ",
@@ -703,6 +828,9 @@
         window.onload = precargarImagenes;
 
         let nodoActual = ""; 
+        let escribiendoTexto = false;
+        let textoCompleto = "";
+        let intervaloTexto = null;
         const uiPantallaSeleccion = document.getElementById("pantalla-seleccion");
         const uiGameContainer = document.getElementById("game-container");
         const uiCaja = document.getElementById("dialogue-box");
@@ -711,6 +839,32 @@
         const uiOpciones = document.getElementById("choices-container");
         const uiPersonaje = document.getElementById("character-sprite");
         const uiPersonajeExtra = document.getElementById("extra-sprite");
+        const uiMenu = document.getElementById("menu-hamburguesa");
+        const uiHistorial = document.getElementById("historial-chat");
+const uiHistorialContenido = document.getElementById("historial-contenido");
+
+let historialChat = [];
+
+        function abrirMenu() {
+
+    if (!uiHistorial.classList.contains("historial-oculto")) {
+        uiHistorial.classList.add("historial-oculto");
+        return;
+    }
+
+    uiMenu.classList.toggle("menu-cerrado");
+}
+        function volverAlInicio() {
+            uiMenu.classList.add("menu-cerrado");
+            mostrarNodo("reiniciar_juego");
+        }
+        function abrirRedes() {
+            console.log("Abrir redes sociales");
+        }
+        function abrirFuentes() {
+            console.log("Abrir fuentes");
+        }
+
 
         function iniciarDialogo(idNodoInicial) {
             uiPantallaSeleccion.classList.add("hidden");
@@ -719,7 +873,28 @@
 
             mostrarNodo(idNodoInicial);
         }
+        function escribirTexto(texto) {
+    if (intervaloTexto) {
+        clearInterval(intervaloTexto);
+    }
 
+    textoCompleto = texto;
+    escribiendoTexto = true;
+    uiTexto.innerText = "";
+
+    let indice = 0;
+
+    intervaloTexto = setInterval(() => {
+        uiTexto.innerText = texto.substring(0, indice + 1);
+        indice++;
+
+        if (indice >= texto.length) {
+            clearInterval(intervaloTexto);
+            intervaloTexto = null;
+            escribiendoTexto = false;
+        }
+    }, 35);
+}
        function mostrarNodo(id) {
             if (id === "reiniciar_juego") {
                 uiPantallaSeleccion.classList.remove("hidden");
@@ -800,33 +975,94 @@
                 uiTexto.classList.add("hidden");
                 uiNombre.classList.add("hidden");
                 uiOpciones.classList.remove("hidden");
+                document.getElementById("boton-dialogo").classList.add("hidden");
                 
-                nodo.choices.forEach(opcion => {
-                    const btn = document.createElement("button");
-                    btn.className = "choice-btn";
-                    btn.innerText = opcion.text;
-                    btn.onclick = (e) => {
-                        e.stopPropagation(); 
-                        mostrarNodo(opcion.target);
-                    };
-                    uiOpciones.appendChild(btn);
-                });
-            } else {
-                uiOpciones.classList.add("hidden");
-                uiTexto.classList.remove("hidden");
-                uiNombre.classList.remove("hidden");
-                
-                uiNombre.innerText = nodo.speaker;
-                uiTexto.innerText = nodo.text;
-            }
+    nodo.choices.forEach(opcion => {
+    const btn = document.createElement("button");
+    btn.className = "choice-btn";
+    btn.innerText = opcion.text;
+    btn.onclick = (e) => {
+        e.stopPropagation();
+        historialChat.push({
+            pregunta: opcion.text,
+            respuesta: ""
+        });
+        actualizarHistorial();
+        mostrarNodo(opcion.target);
+    };
+    uiOpciones.appendChild(btn);
+             });
+            }else {
+    uiOpciones.classList.add("hidden");
+    uiTexto.classList.remove("hidden");
+    uiNombre.classList.remove("hidden");
+    document.getElementById("boton-dialogo").classList.remove("hidden");
+
+    uiNombre.innerText = nodo.speaker;
+
+
+    if (historialChat.length > 0) {
+        const ultimaConversacion = historialChat[historialChat.length - 1];
+
+        if (ultimaConversacion.respuesta === "") {
+            ultimaConversacion.respuesta = nodo.text;
+        } else {
+            ultimaConversacion.respuesta += " " + nodo.text;
         }
 
-        function avanzarDialogo() {
-            const nodo = historia[nodoActual];
-            if(nodo.next && !nodo.choices) {
-                mostrarNodo(nodo.next);
-            }
+        actualizarHistorial();
+    }
+    escribirTexto(nodo.text);
+}
+    }
+    function actualizarHistorial() {
+
+    uiHistorialContenido.innerHTML = "";
+
+    historialChat.forEach(conversacion => {
+
+        const pregunta = document.createElement("div");
+        pregunta.className = "historial-pregunta";
+        pregunta.innerText = conversacion.pregunta;
+
+        uiHistorialContenido.appendChild(pregunta);
+
+        if (conversacion.respuesta !== "") {
+
+            const respuesta = document.createElement("div");
+            respuesta.className = "historial-respuesta";
+            respuesta.innerText = conversacion.respuesta;
+
+            uiHistorialContenido.appendChild(respuesta);
         }
+    });
+}
+function abrirHistorial() {
+
+    uiMenu.classList.add("menu-cerrado");
+
+    uiHistorial.classList.remove("historial-oculto");
+
+    actualizarHistorial();
+}
+        function avanzarDialogo() {
+    const nodo = historia[nodoActual];
+
+    
+    if (escribiendoTexto) {
+        clearInterval(intervaloTexto);
+        intervaloTexto = null;
+
+        uiTexto.innerText = textoCompleto;
+        escribiendoTexto = false;
+
+        return;
+    }
+
+    if(nodo.next && !nodo.choices) {
+        mostrarNodo(nodo.next);
+    }
+}
     </script>
 </body>
 </html>
